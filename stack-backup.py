@@ -81,6 +81,7 @@ def run_backup():
 
         for line in confluencebackup.logs().rsplit('\n'):
             if line != '':
+                # TODO: This will not always be an error. Correct that after seeing what the most likely outcomes are. 
                 log.error(line)
 
         bitbucketbackup = client.containers.run(
