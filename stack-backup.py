@@ -5,15 +5,6 @@ import logging
 import sys
 import os
 
-'''
-backup_dir=$(pwd)
-jira_container="astack_jira_1"
-confluence_container="astack_confluence_1"
-bitbucket_container="astack_bitbucket_1"
-crowd_container="astack_crowd_1"
-crowd_version="2.10.1"
-network_name="astack_default"
-'''
 
 def get_cl_options():
     """ Builds the parser as well as the name of the script, and returns both."""
@@ -83,29 +74,12 @@ def get_cl_options():
 
 def run_backup():
     timestamp = datetime.datetime.now()
-    ''' This runs the desired command within a running container and returns the output and exit code.
-    It is not for this usecase, but very useful in general
-    try:
-        client = docker.from_env()
-    except docker.errors.APIError as APIERROR:
-        # TODO: server error
-        pass
 
-    try:
-        container = client.containers.get(containernameorid)
-    except docker.errors.NotFound as NOTFOUND:
-        # TODO: container not found
-        pass
-
-    container = client.containers.get(containernameorid)
-    command = container.exec_run("desiredcommand")
-    print command.exit_code
-    print command.output
-    '''
     try:
         client = docker.from_env()
     except docker.errors.APIError as APIERROR:
         log.error("There was an error getting the docker environment. Make sure the daemon is running.")
+        log.error(APIERROR)
 
     try:
         jirabackup = client.containers.run("centos:latest",
@@ -132,7 +106,7 @@ def run_backup():
 
 
 def init_log(arguments):
-    """ Writes the first few log lines (will probably not be present in the final script)
+    """ Writes DEBUG values to troubleshoot the script if necessary
 
     Preconditions:
       - command line arguments are parsed

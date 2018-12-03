@@ -1,0 +1,34 @@
+ENV
+
+backup_dir=$(pwd)
+jira_container="astack_jira_1"
+confluence_container="astack_confluence_1"
+bitbucket_container="astack_bitbucket_1"
+crowd_container="astack_crowd_1"
+crowd_version="2.10.1"
+network_name="astack_default"
+
+COMMAND
+
+
+
+
+This runs the desired command within a running container and returns the output and exit code.
+It is not for this usecase, but very useful in general, i think
+
+try:
+    client = docker.from_env()
+except docker.errors.APIError as APIERROR:
+    # TODO: server error
+    pass
+
+try:
+    container = client.containers.get(containernameorid)
+except docker.errors.NotFound as NOTFOUND:
+    # TODO: container not found
+    pass
+
+container = client.containers.get(containernameorid)
+command = container.exec_run("desiredcommand")
+print command.exit_code
+print command.output
