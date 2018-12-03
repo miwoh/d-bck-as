@@ -1,5 +1,6 @@
 import datetime
 import docker
+import docker.errors
 import argparse
 import logging
 import sys
@@ -7,72 +8,43 @@ import os
 
 
 def get_cl_options():
-    """ Builds the parser as well as the name of the script, and returns both."""
-
+    """ Builds the parser and returns the arguments."""
     parser = argparse.ArgumentParser(
         description="Python SVN Backup Script")
     parser.add_argument(
-        "--backup-dir",
-        action="store",
-        dest="backup_dir",
-        metavar="",
-        required=True,
+        "--backup-dir", action="store", dest="backup_dir", metavar="", required=True,
         help="Path to the backup directory.")
     parser.add_argument(
-        "--jira-container",
-        action="store",
-        dest="jira_container",
-        metavar="",
-        required=False,
+        "--jira-container", action="store", dest="jira_container", metavar="", required=False,
         help="Name of the jira container to be backed up.")
     parser.add_argument(
-        "--confluence-container",
-        action="store",
-        dest="confluence_container",
-        metavar="",
-        required=False,
+        "--confluence-container", action="store", dest="confluence_container", metavar="", required=False,
         help="Name of the confluence container to be backed up.")
     parser.add_argument(
-        "--bitbucket-container",
-        action="store",
-        dest="bitbucket_container",
-        metavar="",
-        required=False,
+        "--bitbucket-container", action="store", dest="bitbucket_container", metavar="", required=False,
         help="Name of the bitbucket container to be backed up.")
     parser.add_argument(
-        "--crowd-container",
-        action="store",
-        dest="crowd_container",
-        metavar="",
-        required=False,
+        "--crowd-container", action="store", dest="crowd_container", metavar="", required=False,
         help="Name of the crowd container to be backed up.")
     parser.add_argument(
-        "--crowd-version",
-        action="store",
-        dest="crowd_version",
-        metavar="",
+        "--crowd-version", action="store", dest="crowd_version", metavar="", required=False,
         help="Version of the crowd instance.")
     parser.add_argument(
-        "--network-name",
-        action="store",
-        dest="network_name",
-        metavar="",
-        required=False,
+        "--network-name", action="store", dest="network_name", metavar="", required=False,
         help="Name of the docker network.")
     parser.add_argument(
-        "--log-level",
-        action="store",
-        dest="log_level",
-        metavar="",
-        required=False,
+        "--log-level", action="store", dest="log_level", metavar="", required=False,
         help="Log level. From most to least information: DEBUG, INFO, WARNING, ERROR or CRITICAL")
-
-    # Let the parser parse the given command line options
     arguments = parser.parse_args()
     return arguments
 
 
 def run_backup():
+    """ Runs the backup
+
+    Preconditions:
+      - command line arguments are parsed
+    """
     timestamp = datetime.datetime.now()
 
     try:
@@ -80,50 +52,47 @@ def run_backup():
     except docker.errors.APIError as APIERROR:
         log.error("There was an error getting the docker environment. Make sure the daemon is running.")
         log.error(APIERROR)
+        return 1
 
     try:
         jirabackup = client.containers.run("centos:latest",
-                                       detach=True,
-                                       volumes_from=args.jira_container,
-                                       command="""tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar 
-                                                /var/atlassian/application-data/jira/ && 
-                                                tar -Mcvf /root/connection/jira-install-${timestamp}.backup.tar 
-                                                /opt/atlassian/jira/""".format(timestamp=timestamp))
+                                           detach=True,
+                                           volumes_from=args.jira_container,
+                                           command="""tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar 
+                                                    /var/atlassian/application-data/jira/ && 
+                                                    tar -Mcvf /root/connection/jira-install-${timestamp}.backup.tar 
+                                                    /opt/atlassian/jira/""".format(timestamp=timestamp))
         for line in jirabackup.logs().rsplit('\n'):
             if line != '':
                 log.error(line)
 
-
         confluencebackup = client.containers.run("centos:latest",
-                                       detach=True,
-                                       volumes_from=args.confluence_container,
-                                       command="""tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar 
-                                                /var/atlassian/application-data/jira/ && 
-                                                tar -Mcvf /root/connection/jira-install-${timestamp}.backup.tar 
-                                                /opt/atlassian/jira/""".format(timestamp=timestamp))
+                                                 detach=True,
+                                                 volumes_from=args.confluence_container,
+                                                 command="""tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar 
+                                                        /var/atlassian/application-data/jira/ && 
+                                                        tar -Mcvf /root/connection/jira-install-${timestamp}.backup.tar 
+                                                        /opt/atlassian/jira/""".format(timestamp=timestamp))
     except docker.errors.APIError as APIERROR:
         log.error(APIERROR)
+        return 1
 
 
-def init_log(arguments):
+def init_log():
     """ Writes DEBUG values to troubleshoot the script if necessary
 
     Preconditions:
       - command line arguments are parsed
-
-    Attributes:
-        arguments (list: str): Parsed command line arguments
-
     """
     log.debug("#" * 30 + " D E B U G M O D E " + "#" * 30)
     log.debug("%s has been called with the following parameters:" % sys.argv[0])
-    log.debug("Backup Path: %s" % arguments.backup_dir)
-    log.debug("Jira Container Name: %s" % arguments.jira_container)
-    log.debug("Confluence Container Name: %s" % arguments.confluence_container)
-    log.debug("Bitbucket Container Name: %s" % arguments.bitbucket_container)
-    log.debug("Crowd Container Name: %s" % arguments.crowd_container)
-    log.debug("Crowd Instance Version: %s" % arguments.crowd_version)
-    log.debug("Docker Network Name: %s" % arguments.network_name)
+    log.debug("Backup Path: %s" % args.backup_dir)
+    log.debug("Jira Container Name: %s" % args.jira_container)
+    log.debug("Confluence Container Name: %s" % args.confluence_container)
+    log.debug("Bitbucket Container Name: %s" % args.bitbucket_container)
+    log.debug("Crowd Container Name: %s" % args.crowd_container)
+    log.debug("Crowd Instance Version: %s" % args.crowd_version)
+    log.debug("Docker Network Name: %s" % args.network_name)
 
 
 def main():
@@ -149,16 +118,16 @@ if __name__ == "__main__":
         ]
     try:
         logging.basicConfig(filename=logfile,
-                            format="%(asctime)s %(levelname)-8s %(module)s %(message)s",
-                            level=os.environ.get("LOGLEVEL",
-                                                 "INFO" if (args.log_level is None) or (args.log_level.upper() not in logmodes)
-                                                 else args.log_level.upper()))
+                            format="%(asctime)s %(levelname)-5s %(module)-15s %(message)s",
+                            level=os.environ.get(
+                                 "LOGLEVEL",
+                                 "INFO" if (args.log_level is None) or (args.log_level.upper() not in logmodes)
+                                 else args.log_level.upper()))
     except IOError as ex:
         sys.stderr.write("Insufficient permissions to write log file. Exiting...")
         sys.exit(1)
-    # Start the logger
-    global log
+
     log = logging.getLogger("StackBackup")
-    # Log initialization with given or default values (for testing)
-    init_log(args)
+    # Log initialization with given values (for testing)
+    init_log()
     sys.exit(main())
