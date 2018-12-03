@@ -97,7 +97,7 @@ def run_backup():
         crowdbackup = client.containers.run(
              'centos:latest',
              detach=True,
-             volumes_from=args.bitbucket_container,
+             volumes_from=args.crowd_container,
              command="""tar -Mcvf /root/connection/crowd-home-{timestamp}.backup.tar 
                     /var/atlassian/application-data/crowd/ && 
                     tar -Mcvf /root/connection/jira-install-{timestamp}.backup.tar 
