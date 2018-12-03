@@ -53,7 +53,7 @@ def run_backup():
         client = docker.from_env()
     except docker.errors.APIError as APIERROR:
         log.error('There was an error getting the docker environment. Make sure the daemon is running.')
-        log.error(APIERROR)
+        log.error(str(APIERROR))
         return 1
 
     try:
@@ -165,7 +165,7 @@ def run_backup():
                 log.error(line)
 
     except docker.errors.APIError as APIERROR:
-        log.error(APIERROR)
+        log.error(str(APIERROR))
         return 1
 
 
