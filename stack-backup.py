@@ -8,7 +8,7 @@ import os
 
 
 def get_cl_options():
-    ''' Builds the parser and returns the arguments.'''
+    """ Builds the parser and returns the arguments."""
     parser = argparse.ArgumentParser(description='Script')
     parser.add_argument(
         '--backup-dir', action='store', dest='backup_dir', required=True,
@@ -42,11 +42,11 @@ def get_cl_options():
 
 
 def run_backup():
-    ''' Runs the backup
+    """ Runs the backup
 
     Preconditions:
       - command line arguments are parsed
-    '''
+    """
     timestamp = datetime.datetime.now()
 
     try:
@@ -61,10 +61,10 @@ def run_backup():
             'centos:latest',
             detach=True,
             volumes_from=args.jira_container,
-            command='''tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar 
+            command="""tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar 
                     /var/atlassian/application-data/jira/ && 
                     tar -Mcvf /root/connection/jira-install-{timestamp}.backup.tar 
-                    /opt/atlassian/jira/'''.format(timestamp=timestamp))
+                    /opt/atlassian/jira/""".format(timestamp=timestamp))
 
         for line in jirabackup.logs().rsplit('\n'):
             if line != '':
@@ -74,10 +74,10 @@ def run_backup():
              'centos:latest',
              detach=True,
              volumes_from=args.confluence_container,
-             command='''tar -Mcvf /root/connection/confluence-home-{timestamp}.backup.tar 
+             command="""tar -Mcvf /root/connection/confluence-home-{timestamp}.backup.tar 
                     /var/atlassian/application-data/confluence/ && 
                     tar -Mcvf /root/connection/confluence-install-{timestamp}.backup.tar 
-                    /opt/atlassian/confluence/'''.format(timestamp=timestamp))
+                    /opt/atlassian/confluence/""".format(timestamp=timestamp))
 
         for line in confluencebackup.logs().rsplit('\n'):
             if line != '':
@@ -87,8 +87,8 @@ def run_backup():
              'centos:latest',
              detach=True,
              volumes_from=args.bitbucket_container,
-             command='''tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar 
-                    /var/atlassian/application-data/bitbucket/'''.format(timestamp=timestamp))
+             command="""tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar 
+                    /var/atlassian/application-data/bitbucket/""".format(timestamp=timestamp))
 
         for line in bitbucketbackup.logs().rsplit('\n'):
             if line != '':
@@ -98,10 +98,10 @@ def run_backup():
              'centos:latest',
              detach=True,
              volumes_from=args.bitbucket_container,
-             command='''tar -Mcvf /root/connection/crowd-home-{timestamp}.backup.tar 
+             command="""tar -Mcvf /root/connection/crowd-home-{timestamp}.backup.tar 
                     /var/atlassian/application-data/crowd/ && 
                     tar -Mcvf /root/connection/jira-install-{timestamp}.backup.tar 
-                    /opt/atlassian/atlassian-crowd-{version}/'''.format(
+                    /opt/atlassian/atlassian-crowd-{version}/""".format(
                  timestamp=timestamp, version=str(args.crowd_version)))
 
         for line in crowdbackup.logs().rsplit('\n'):
@@ -114,8 +114,8 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
              environment=args.db_password,
              network=args.network_name,
-             command='''pg_dump -h db -U jirauser -Fc -w -f 
-                    /root/data/jiradb-{timestamp}.pg_dump.fc jiradb'''.format(
+             command="""pg_dump -h db -U jirauser -Fc -w -f 
+                    /root/data/jiradb-{timestamp}.pg_dump.fc jiradb""".format(
                  timestamp=timestamp))
 
         for line in jiradb_backup.logs().rsplit('\n'):
@@ -128,8 +128,8 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
              environment=args.db_password,
              network=args.network_name,
-             command='''pg_dump -h db -U confluenceuser -Fc -w -f 
-                    /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb'''.format(
+             command="""pg_dump -h db -U confluenceuser -Fc -w -f 
+                    /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb""".format(
                  timestamp=timestamp))
 
         for line in confluencedb_backup.logs().rsplit('\n'):
@@ -142,8 +142,8 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
              environment=args.db_password,
              network=args.network_name,
-             command='''pg_dump -h db -U bitbucketuser -Fc -w -f 
-                    /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb'''.format(
+             command="""pg_dump -h db -U bitbucketuser -Fc -w -f 
+                    /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb""".format(
                  timestamp=timestamp))
 
         for line in bitbucketdb_backup.logs().rsplit('\n'):
@@ -156,8 +156,8 @@ def run_backup():
             volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
             environment=args.db_password,
             network=args.network_name,
-            command='''pg_dump -h db -U crowduser -Fc -w -f 
-                   /root/data/crowddb-{timestamp}.pg_dump.fc crowddb'''.format(
+            command="""pg_dump -h db -U crowduser -Fc -w -f 
+                   /root/data/crowddb-{timestamp}.pg_dump.fc crowddb""".format(
                 timestamp=timestamp))
 
         for line in crowddb_backup.logs().rsplit('\n'):
@@ -170,11 +170,11 @@ def run_backup():
 
 
 def init_log():
-    ''' Writes DEBUG values to troubleshoot the script if necessary
+    """ Writes DEBUG values to troubleshoot the script if necessary
 
     Preconditions:
       - command line arguments are parsed
-    '''
+    """
     log.debug('#' * 30 + ' D E B U G M O D E ' + '#' * 30)
     log.debug('%s has been called with the following parameters:' % sys.argv[0])
     log.debug('Backup Path: %s' % args.backup_dir)
@@ -200,13 +200,7 @@ if __name__ == '__main__':
             sys.exit(1)
     logfile = os.path.join(logdir, 'backup.log')
     args = get_cl_options()
-    logmodes = [
-        'DEBUG',
-        'INFO',
-        'WARNING',
-        'ERROR',
-        'CRITICAL'
-        ]
+    logmodes = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
     try:
         logging.basicConfig(filename=logfile,
                             format='%(asctime)s %(levelname)-5s %(module)-15s %(message)s',
