@@ -14,7 +14,7 @@ def get_cl_options():
     parser = argparse.ArgumentParser(description='Script')
     parser.add_argument(
         '--backup-dir', action='store', dest='backup_dir', nargs='?',
-        default='/home/michael/PycharmProjects/d-bck-as',
+        default='$PWD/backup',
         help='Path to the backup directory.')
     parser.add_argument(
         '--jira-container', action='store', dest='jira_container', nargs='?',
@@ -44,12 +44,25 @@ def get_cl_options():
         '--db-password', action='store', dest='db_password', required=True, nargs='?',
         help='Password to login to the databases.')
     parser.add_argument(
-        '--log-level', action='store', dest='log_level', nargs='?', default='INFO',
+        '--retention', action='store', type=int, dest='retention', nargs='?',
+        default=3,
+        help='Retention period of existing backups in days. Default is 3.')
+    parser.add_argument(
+        '--log-level', action='store', dest='log_level', nargs='?',
+        default='INFO',
         help='From most to least information: DEBUG, INFO, WARNING, ERROR or CRITICAL.')
     parser.add_argument(
         '-v', '--version', action='version', version='{version}'.format(version=__version__))
     arguments = parser.parse_args()
     return arguments
+
+
+def remove_expired_backups():
+
+    if os.path.isfile(args.backup_dir + "jira*"):
+        for f in os.listdir(args.backup_dir):
+            if os.path.getmtime(f) < (datetime.datetime.today() - datetime.timedelta(args.retention)):
+                pass
 
 
 def run_backup():
@@ -58,7 +71,7 @@ def run_backup():
     Preconditions:
       - command line arguments are parsed
     """
-    timestamp = datetime.datetime.now()
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
 
     try:
         client = docker.from_env()
@@ -79,6 +92,7 @@ def run_backup():
 
         for line in jirabackup.logs().rsplit('\n'):
             if line != '':
+                # TODO: This will not always be an error. Correct that after seeing what the most likely outcomes are.
                 log.error(line)
 
         confluencebackup = client.containers.run(
@@ -92,7 +106,6 @@ def run_backup():
 
         for line in confluencebackup.logs().rsplit('\n'):
             if line != '':
-                # TODO: This will not always be an error. Correct that after seeing what the most likely outcomes are. 
                 log.error(line)
 
         bitbucketbackup = client.containers.run(
@@ -202,6 +215,7 @@ def init_log():
 
 
 def main():
+    remove_expired_backups()
     run_backup()
 
 
@@ -213,8 +227,10 @@ if __name__ == '__main__':
         except OSError as ex:
             sys.stderr.write('Error creating log directory: ' + str(ex))
             sys.exit(1)
+
     logfile = os.path.join(logdir, 'backup.log')
     args = get_cl_options()
+
     logmodes = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
     try:
         logging.basicConfig(filename=logfile,
@@ -228,6 +244,16 @@ if __name__ == '__main__':
         sys.exit(1)
 
     log = logging.getLogger('StackBackup')
+
     # Log initialization with given values (for testing)
     init_log()
+
+    if not os.path.exists(args.backup_dir):
+        log.debug("Backup directory doesn't exist. Creating %s" % args.backup_dir)
+        try:
+            os.makedirs(args.backup_dir)
+        except OSError as ex:
+            log.critical('Error creating backup directory: ' + str(ex))
+            sys.exit(1)
+
     sys.exit(main())

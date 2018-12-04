@@ -32,3 +32,7 @@ container = client.containers.get(containernameorid)
 command = container.exec_run("desiredcommand")
 print command.exit_code
 print command.output
+
+docker container run -itd --name astack_confluence_1 ubuntu:latest /bin/bash \
+-c "mkdir -p /var/atlassian/application-data/confluence/ && touch /var/atlassian/application-data/confluence/datacontents && \
+mkdir -p /opt/atlassian/confluence/ && touch /opt/atlassian/confluence/homecontents && tail -f /dev/null"
