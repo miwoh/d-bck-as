@@ -83,6 +83,7 @@ def run_backup():
 
         for line in confluencebackup.logs().rsplit('\n'):
             if line != '':
+                # TODO: This will not always be an error. Correct that after seeing what the most likely outcomes are. 
                 log.error(line)
 
         bitbucketbackup = client.containers.run(
@@ -170,6 +171,9 @@ def run_backup():
         log.error(str(APIERROR))
         return 1
 
+# TODO: Remove backups after 3 days (alternatively after an amount of time specified via cl)
+# TODO: Return the running version of this script (make sure i understood that right)
+# TODO: Provide the option (!) to do the backup with a configfile instead of cl arguments
 
 def init_log():
     """ Writes DEBUG values to troubleshoot the script if necessary
