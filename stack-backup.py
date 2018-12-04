@@ -5,7 +5,7 @@ import argparse
 import logging
 import sys
 import os
-
+from _version import __version__
 
 def get_cl_options():
     """ Builds the parser and returns the arguments."""
@@ -37,6 +37,8 @@ def get_cl_options():
     parser.add_argument(
         '--log-level', action='store', dest='log_level', required=True,
         help='From most to least information: DEBUG, INFO, WARNING, ERROR or CRITICAL.')
+    parser.add_argument(
+        '-v', '--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     arguments = parser.parse_args()
     return arguments
 
