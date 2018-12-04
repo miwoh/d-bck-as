@@ -5,40 +5,49 @@ import argparse
 import logging
 import sys
 import os
+
 from _version import __version__
+
 
 def get_cl_options():
     """ Builds the parser and returns the arguments."""
     parser = argparse.ArgumentParser(description='Script')
     parser.add_argument(
-        '--backup-dir', action='store', dest='backup_dir', required=True,
+        '--backup-dir', action='store', dest='backup_dir', nargs='?',
+        default='/home/michael/PycharmProjects/d-bck-as',
         help='Path to the backup directory.')
     parser.add_argument(
-        '--jira-container', action='store', dest='jira_container', required=True,
+        '--jira-container', action='store', dest='jira_container', nargs='?',
+        default='astack_jira_1',
         help='Name of the jira container to be backed up.')
     parser.add_argument(
-        '--confluence-container', action='store', dest='confluence_container', required=True,
+        '--confluence-container', action='store', dest='confluence_container', nargs='?',
+        default='astack_confluence_1',
         help='Name of the confluence container to be backed up.')
     parser.add_argument(
-        '--bitbucket-container', action='store', dest='bitbucket_container', required=True,
+        '--bitbucket-container', action='store', dest='bitbucket_container', nargs='?',
+        default='astack_bitbucket_1',
         help='Name of the bitbucket container to be backed up.')
     parser.add_argument(
-        '--crowd-container', action='store', dest='crowd_container', required=True,
+        '--crowd-container', action='store', dest='crowd_container', nargs='?',
+        default='astack_crowd_1',
         help='Name of the crowd container to be backed up.')
     parser.add_argument(
-        '--crowd-version', action='store', dest='crowd_version', required=True,
+        '--crowd-version', action='store', dest='crowd_version', nargs='?',
+        default='2.10.1',
         help='Version of the crowd instance.')
     parser.add_argument(
-        '--network-name', action='store', dest='network_name', required=True,
+        '--network-name', action='store', dest='network_name', nargs='?',
+        default='astack_default',
         help='Name of the docker network.')
     parser.add_argument(
-        '--db-password', action='store', dest='db_password', required=True,
+        '--db-password', action='store', dest='db_password', required=True, nargs='?',
         help='Password to login to the databases.')
     parser.add_argument(
-        '--log-level', action='store', dest='log_level', required=True,
+        '--log-level', action='store', dest='log_level', nargs='?', default='INFO',
         help='From most to least information: DEBUG, INFO, WARNING, ERROR or CRITICAL.')
     parser.add_argument(
-        '-v', '--version', action='version', version='%(prog)s {version}'.format(version=__version__))
+        '-v', '--version', action='version', version='{version}'.format(version=__version__))
     arguments = parser.parse_args()
     return arguments
 
@@ -172,8 +181,8 @@ def run_backup():
         return 1
 
 # TODO: Remove backups after 3 days (alternatively after an amount of time specified via cl)
-# TODO: Return the running version of this script (make sure i understood that right)
 # TODO: Provide the option (!) to do the backup with a configfile instead of cl arguments
+
 
 def init_log():
     """ Writes DEBUG values to troubleshoot the script if necessary
