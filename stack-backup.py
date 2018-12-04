@@ -58,11 +58,12 @@ def get_cl_options():
 
 
 def remove_expired_backups():
+    # TODO: Remove backups after 3 days (alternatively after an amount of time specified via cl)
 
     if os.path.isfile(args.backup_dir + "jira*"):
         for f in os.listdir(args.backup_dir):
-            if os.path.getmtime(f) < (datetime.datetime.today() - datetime.timedelta(args.retention)):
-                pass
+            if os.path.getmtime(f) < (datetime.datetime.today() - datetime.timedelta(0,0,args.retention)):
+                print f
 
 
 def run_backup():
@@ -79,9 +80,20 @@ def run_backup():
         log.error('There was an error getting the docker environment. Make sure the daemon is running.')
         log.error(str(APIERROR))
         return 1
-
+    test = "tar -cvf /root/connection/jira-home-{timestamp}.backup.tar /var/atlassian/application-data/jira/ && tar -cvf /root/connection/jira-install-{timestamp}.backup.tar /opt/atlassian/jira/".format(timestamp=timestamp)
+    print test
     try:
-        jirabackup = client.containers.run(
+        testbackup = client.containers.run(
+            'ubuntu:latest',
+            detach=True,
+            volumes_from=args.jira_container,
+            volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
+            command="tar -cvf /root/connection/jira-{timestamp}.backup.tar -C /var/atlassian/application-data/jira/ .. -C /opt/atlassian/jira/ ..".format(timestamp=timestamp))
+        for line in testbackup.logs().rsplit('\n'):
+            if line != '':
+                # TODO: This will not always be an error. Correct that after seeing what the most likely outcomes are.
+                log.error(line)
+        '''jirabackup = client.containers.run(
             'centos:latest',
             detach=True,
             volumes_from=args.jira_container,
@@ -187,13 +199,12 @@ def run_backup():
 
         for line in crowddb_backup.logs().rsplit('\n'):
             if line != '':
-                log.error(line)
+                log.error(line)'''
 
     except docker.errors.APIError as APIERROR:
         log.error(str(APIERROR))
         return 1
 
-# TODO: Remove backups after 3 days (alternatively after an amount of time specified via cl)
 # TODO: Provide the option (!) to do the backup with a configfile instead of cl arguments
 
 
