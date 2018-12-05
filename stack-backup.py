@@ -59,11 +59,15 @@ def get_cl_options():
 
 def remove_expired_backups():
     # TODO: Remove backups after 3 days (alternatively after an amount of time specified via cl)
-
-    if os.path.isfile(args.backup_dir + "jira*"):
-        for f in os.listdir(args.backup_dir):
-            if os.path.getmtime(f) < (datetime.datetime.today() - datetime.timedelta(0,0,args.retention)):
-                print f
+    stackapps = ['jira', 'bitbucket', 'confluence', 'crowd']
+    for backupfile in os.listdir(args.backup_dir):
+        for app in stackapps:
+            if app in backupfile:
+                if datetime.datetime.fromtimestamp(
+                        os.path.getmtime(
+                            args.backup_dir + os.sep + backupfile)) < (datetime.datetime.now() - datetime.timedelta(
+                                                                                            minutes=args.retention)):
+                    os.remove(args.backup_dir + os.sep + backupfile)
 
 
 def run_backup():
@@ -80,27 +84,16 @@ def run_backup():
         log.error('There was an error getting the docker environment. Make sure the daemon is running.')
         log.error(str(APIERROR))
         return 1
-    test = "tar -cvf /root/connection/jira-home-{timestamp}.backup.tar /var/atlassian/application-data/jira/ && tar -cvf /root/connection/jira-install-{timestamp}.backup.tar /opt/atlassian/jira/".format(timestamp=timestamp)
-    print test
     try:
-        testbackup = client.containers.run(
-            'ubuntu:latest',
-            detach=True,
-            volumes_from=args.jira_container,
-            volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
-            command="tar -cvf /root/connection/jira-{timestamp}.backup.tar -C /var/atlassian/application-data/jira/ .. -C /opt/atlassian/jira/ ..".format(timestamp=timestamp))
-        for line in testbackup.logs().rsplit('\n'):
-            if line != '':
-                # TODO: This will not always be an error. Correct that after seeing what the most likely outcomes are.
-                log.error(line)
-        '''jirabackup = client.containers.run(
+        jirabackup = client.containers.run(
             'centos:latest',
             detach=True,
+            volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
             volumes_from=args.jira_container,
-            command="""tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar 
-                    /var/atlassian/application-data/jira/ && 
-                    tar -Mcvf /root/connection/jira-install-{timestamp}.backup.tar 
-                    /opt/atlassian/jira/""".format(timestamp=timestamp))
+            command='''bash -c "tar -Mcvf /root/connection/jira-home-{timestamp}.backup.tar \
+                    /var/atlassian/application-data/jira/ && \
+                    tar -Mcvf /root/connection/jira-install-{timestamp}.backup.tar \
+                    /opt/atlassian/jira/"'''.format(timestamp=timestamp))
 
         for line in jirabackup.logs().rsplit('\n'):
             if line != '':
@@ -110,11 +103,12 @@ def run_backup():
         confluencebackup = client.containers.run(
              'centos:latest',
              detach=True,
+             volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=args.confluence_container,
-             command="""tar -Mcvf /root/connection/confluence-home-{timestamp}.backup.tar 
-                    /var/atlassian/application-data/confluence/ && 
-                    tar -Mcvf /root/connection/confluence-install-{timestamp}.backup.tar 
-                    /opt/atlassian/confluence/""".format(timestamp=timestamp))
+             command='''bash -c "tar -Mcvf /root/connection/confluence-home-{timestamp}.backup.tar \
+                    /var/atlassian/application-data/confluence/ && \
+                    tar -Mcvf /root/connection/confluence-install-{timestamp}.backup.tar \
+                    /opt/atlassian/confluence/"'''.format(timestamp=timestamp))
 
         for line in confluencebackup.logs().rsplit('\n'):
             if line != '':
@@ -123,9 +117,10 @@ def run_backup():
         bitbucketbackup = client.containers.run(
              'centos:latest',
              detach=True,
+             volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=args.bitbucket_container,
-             command="""tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar 
-                    /var/atlassian/application-data/bitbucket/""".format(timestamp=timestamp))
+             command='''bash -c "tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar \
+                    /var/atlassian/application-data/bitbucket/"'''.format(timestamp=timestamp))
 
         for line in bitbucketbackup.logs().rsplit('\n'):
             if line != '':
@@ -134,11 +129,12 @@ def run_backup():
         crowdbackup = client.containers.run(
              'centos:latest',
              detach=True,
+             volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=args.crowd_container,
-             command="""tar -Mcvf /root/connection/crowd-home-{timestamp}.backup.tar 
-                    /var/atlassian/application-data/crowd/ && 
-                    tar -Mcvf /root/connection/jira-install-{timestamp}.backup.tar 
-                    /opt/atlassian/atlassian-crowd-{version}/""".format(
+             command='''bash -c "tar -Mcvf /root/connection/crowd-home-{timestamp}.backup.tar \
+                    /var/atlassian/application-data/crowd/ && \
+                    tar -Mcvf /root/connection/jira-install-{timestamp}.backup.tar \
+                    /opt/atlassian/atlassian-crowd-{version}/"'''.format(
                  timestamp=timestamp, version=str(args.crowd_version)))
 
         for line in crowdbackup.logs().rsplit('\n'):
@@ -149,11 +145,10 @@ def run_backup():
              'postgres:9.4',
              detach=True,
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
-             environment=args.db_password,
+             environment=["PGPASSWORD=" + args.db_password],
              network=args.network_name,
-             command="""pg_dump -h db -U jirauser -Fc -w -f 
-                    /root/data/jiradb-{timestamp}.pg_dump.fc jiradb""".format(
-                 timestamp=timestamp))
+             command='''bash -c "pg_dump -h db -U jirauser -Fc -w -f \
+                    /root/data/jiradb-{timestamp}.pg_dump.fc jiradb"'''.format(timestamp=timestamp))
 
         for line in jiradb_backup.logs().rsplit('\n'):
             if line != '':
@@ -165,9 +160,8 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
              environment=args.db_password,
              network=args.network_name,
-             command="""pg_dump -h db -U confluenceuser -Fc -w -f 
-                    /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb""".format(
-                 timestamp=timestamp))
+             command='''bash -c "pg_dump -h db -U confluenceuser -Fc -w -f \
+                    /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb"'''.format(timestamp=timestamp))
 
         for line in confluencedb_backup.logs().rsplit('\n'):
             if line != '':
@@ -179,9 +173,8 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
              environment=args.db_password,
              network=args.network_name,
-             command="""pg_dump -h db -U bitbucketuser -Fc -w -f 
-                    /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb""".format(
-                 timestamp=timestamp))
+             command='''bash -c "pg_dump -h db -U bitbucketuser -Fc -w -f \
+                    /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb"'''.format(timestamp=timestamp))
 
         for line in bitbucketdb_backup.logs().rsplit('\n'):
             if line != '':
@@ -193,13 +186,12 @@ def run_backup():
             volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
             environment=args.db_password,
             network=args.network_name,
-            command="""pg_dump -h db -U crowduser -Fc -w -f 
-                   /root/data/crowddb-{timestamp}.pg_dump.fc crowddb""".format(
-                timestamp=timestamp))
+            command='''bash -c "pg_dump -h db -U crowduser -Fc -w -f \
+                   /root/data/crowddb-{timestamp}.pg_dump.fc crowddb"'''.format(timestamp=timestamp))
 
         for line in crowddb_backup.logs().rsplit('\n'):
             if line != '':
-                log.error(line)'''
+                log.error(line)
 
     except docker.errors.APIError as APIERROR:
         log.error(str(APIERROR))
@@ -227,7 +219,7 @@ def init_log():
 
 def main():
     remove_expired_backups()
-    run_backup()
+    #run_backup()
 
 
 if __name__ == '__main__':
