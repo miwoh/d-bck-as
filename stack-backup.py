@@ -6,6 +6,7 @@ import logging
 import sys
 import os
 from time import sleep
+from ConfigParser import ConfigParser
 
 from _version import __version__
 
@@ -53,6 +54,10 @@ def get_cl_options():
         default='INFO',
         help='From most to least information: DEBUG, INFO, WARNING, ERROR or CRITICAL.')
     parser.add_argument(
+        '--config', action='store', dest='configpath', nargs='?',
+        default='NONE',
+        help='Path to the configuration file.')
+    parser.add_argument(
         '-v', '--version', action='version', version='{version}'.format(version=__version__))
     arguments = parser.parse_args()
     return arguments
@@ -85,6 +90,12 @@ def remove_expired_backups():
     log.info('Done removing old files!')
 
 
+def read_config():
+    conf = {}
+    parser = ConfigParser()
+    parser.read(args.configpath)
+    conf = {section: dict(parser.items(section)) for section in parser.sections()}
+    print conf
 
 def run_backup():
     """ Runs the backup
@@ -270,6 +281,8 @@ def run_backup():
         return 1
 
 # TODO: Provide the option (!) to do the backup with a configfile instead of cl arguments
+# Gotta remove args.whatnot from run_backup() and remove_expired_backups()if i want to do that, so we can switch
+# between values depending on if a config file got specified or not
 
 
 def init_log():
@@ -319,7 +332,8 @@ if __name__ == '__main__':
         sys.exit(1)
 
     log = logging.getLogger('StackBackup')
-
+    if args.configpath != 'NONE':
+        read_config()
     # Log initialization with given values (for testing)
     init_log()
 
