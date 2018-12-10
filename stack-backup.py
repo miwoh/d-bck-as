@@ -5,7 +5,7 @@ import argparse
 import logging
 import sys
 import os
-import time
+from time import sleep
 
 from _version import __version__
 
@@ -67,6 +67,9 @@ def remove_expired_backups():
 
     # Im not removing any logs here, and that's by design. Consider log rotation.
     stackapps = ['jira', 'bitbucket', 'confluence', 'crowd']
+    oldbackupfound = False
+    log.info('#' * 10 + ' Atlassian Stack Backup Starting! ' + '#' * 10)
+    log.info('Removing files older than %d day/s...' % args.retention)
     for backupfile in os.listdir(args.backup_dir):
         for app in stackapps:
             if app in backupfile:
@@ -75,6 +78,12 @@ def remove_expired_backups():
                             args.backup_dir + os.sep + backupfile)) < (datetime.datetime.now() - datetime.timedelta(
                                                                                             minutes=args.retention)):
                     os.remove(args.backup_dir + os.sep + backupfile)
+                    log.debug('%s' % args.backup_dir + os.sep + backupfile)
+                    oldbackupfound = True
+    if not oldbackupfound:
+        log.info('None found.')
+    log.info('Done removing old files!')
+
 
 
 def run_backup():
@@ -83,40 +92,17 @@ def run_backup():
     Preconditions:
       - command line arguments are parsed
     """
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    # helper variable for checking for found errors in the backup output (because one line suffices in backup.log)
     found_error = False
-
     try:
         client = docker.from_env()
     except docker.errors.APIError as APIERROR:
-        log.error('There was an error getting the docker environment. Make sure the daemon is running.')
+        log.error('Unable to get the docker environment. Make sure the daemon is running.')
         log.error(str(APIERROR))
         return 1
     try:
-        testbackup = client.containers.run(
-            'centos:latest',
-            detach=True,
-            remove=True,
-            volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
-            volumes_from=args.jira_container,
-            command='''bash -c "tar -cvf /root/connection/jira-home-{timestamp}.backup.tar \
-                    /var/atlassian/application-data/jira/ &> /root/connection/test.log && \
-                    tar -cvf /root/connection/jira-install-{timestamp}.backup.tar \
-                    /opt/atlassan/jira/ &>> /root/connection/test.log"'''.format(timestamp=timestamp))
-        # I love neil now. Try with .logs()
-        time.sleep(5)
-        testlog = open(args.backup_dir + os.sep + 'test.log', 'rU', 30000)
-        for line in testlog.readlines():
-            print line
-            #if "Cannot" in line or "Exiting" in line:
-            # log.error("There was an error with the jira backup. Check the logs in %s." % args.backup_dir)
-        try:
-            for line in testbackup.logs().rsplit('\n'):
-                print line
-        except Exception as ex:
-            print str(ex)
-        """
-        jirabackup = client.containers.run(
+        client.containers.run(
             'centos:latest',
             detach=True,
             remove=True,
@@ -124,20 +110,26 @@ def run_backup():
             volumes_from=args.jira_container,
             command='''bash -c "tar -cvf /root/connection/jira-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/jira/ &> \
-                    /root/connection/jira-bck-{timestamp}.log && \
+                    /root/connection/jira-bck-{timestamp}.tar.log && \
                     tar -cvf /root/connection/jira-install-{timestamp}.backup.tar \
-                    /opt/atlassan/jira/ &>> \
-                    /root/connection/jira-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+                    /opt/atlassian/jira/ &>> \
+                    /root/connection/jira-bck-{timestamp}.tar.log"'''.format(timestamp=timestamp))
+        # This is necessary to let the process finish before checking its output
+        sleep(1)
+        jiralog = open(args.backup_dir + os.sep + 'jira-bck-{timestamp}.tar.log'.format(
+            timestamp=timestamp), 'r')
+        for line in jiralog.readlines():
+            if "Cannot" in line or "Exiting" in line:
+                found_error = True
+        jiralog.close()
+        if found_error:
+            log.error("Unable to finish JIRA backup!")
+            log.error("Details in %s" % args.backup_dir + '/jira-bck-{timestamp}.tar.log'.format(
+                timestamp=timestamp))
+            found_error = False
+        else:
+            log.info("JIRA Backup Finished without errors. Rejoice!")
 
-        jiralog = open(args.backup_dir + os.sep + 'jira-bck-{timestamp}.log'.format(timestamp=timestamp), 'rb')
-        #for line in jiralog.readlines():
-        #    print line
-            #if "Cannot" in line or "Exiting" in line:
-            #    log.error("There was an error with the jira backup. Check the logs in %s." % args.backup_dir)
-
-        for line in jirabackup.logs().rsplit('\n'):
-            print line
-        
         client.containers.run(
              'centos:latest',
              detach=True,
@@ -145,11 +137,25 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=args.confluence_container,
              command='''bash -c "tar -cvf /root/connection/confluence-home-{timestamp}.backup.tar \
-                    /var/atlassian/application-data/confluence/ > \
-                    /root/connection/confluence-bck-{timestamp}.log && \
+                    /var/atlassian/application-data/confluence/ &> \
+                    /root/connection/confluence-bck-{timestamp}.tar.log && \
                     tar -cvf /root/connection/confluence-install-{timestamp}.backup.tar \
-                    /opt/atlassian/confluence/ >> \
-                    /root/connection/confluence-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+                    /opt/atlassian/confluence/ &>> \
+                    /root/connection/confluence-bck-{timestamp}.tar.log"'''.format(timestamp=timestamp))
+        sleep(1)
+        confluencelog = open(args.backup_dir + os.sep + 'confluence-bck-{timestamp}.tar.log'.format(
+            timestamp=timestamp), 'r')
+        for line in confluencelog.readlines():
+            if "Cannot" in line or "Exiting" in line:
+                found_error = True
+        confluencelog.close()
+        if found_error:
+            log.error("Unable to finish Confluence backup!")
+            log.error("Details in %s" % args.backup_dir + '/confluence-bck-{timestamp}.tar.log'.format(
+                timestamp=timestamp))
+            found_error = False
+        else:
+            log.info("Confluence Backup Finished without errors. Rejoice!")
 
         client.containers.run(
              'centos:latest',
@@ -158,8 +164,22 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=args.bitbucket_container,
              command='''bash -c "tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar \
-                    /var/atlassian/application-data/bitbucket/ > \
-                    /root/connection/bitbucket-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+                    /var/atlassian/application-data/bitbucket/ &> \
+                    /root/connection/bitbucket-bck-{timestamp}.tar.log"'''.format(timestamp=timestamp))
+        sleep(1)
+        bitbucketlog = open(args.backup_dir + os.sep + 'bitbucket-bck-{timestamp}.tar.log'.format(
+            timestamp=timestamp), 'r')
+        for line in bitbucketlog.readlines():
+            if "Cannot" in line or "Exiting" in line:
+                found_error = True
+        bitbucketlog.close()
+        if found_error:
+            log.error("Unable to finish Bitbucket backup!")
+            log.error("Details in %s" % args.backup_dir + '/bitbucket-bck-{timestamp}.tar.log'.format(
+                timestamp=timestamp))
+            found_error = False
+        else:
+            log.info("Bitbucket Backup Finished without errors. Rejoice!")
 
         client.containers.run(
              'centos:latest',
@@ -168,13 +188,27 @@ def run_backup():
              volumes={args.backup_dir: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=args.crowd_container,
              command='''bash -c "tar -cvf /root/connection/crowd-home-{timestamp}.backup.tar \
-                    /var/atlassian/application-data/crowd/  > \
-                    /root/connection/crowd-bck-{timestamp}.log && \
+                    /var/atlassian/application-data/crowd/  &> \
+                    /root/connection/crowd-bck-{timestamp}.tar.log && \
                     tar -cvf /root/connection/crowd-install-{timestamp}.backup.tar \
-                    /opt/atlassian/atlassian-crowd-{version}/ >> \
-                    /root/connection/crowd-bck-{timestamp}.log"'''.format(
+                    /opt/atlassian/atlassian-crowd-{version}/ &>> \
+                    /root/connection/crowd-bck-{timestamp}.tar.log"'''.format(
                                                                 timestamp=timestamp, version=str(args.crowd_version)))
-
+        sleep(1)
+        crowdlog = open(args.backup_dir + os.sep + 'crowd-bck-{timestamp}.tar.log'.format(
+            timestamp=timestamp), 'r')
+        for line in crowdlog.readlines():
+            if "Cannot" in line or "Exiting" in line:
+                found_error = True
+        crowdlog.close()
+        if found_error:
+            log.error("Unable to finish Crowd backup!")
+            log.error("Details in %s" % args.backup_dir + '/crowd-bck-{timestamp}.tar.log'.format(
+                timestamp=timestamp))
+            found_error = False
+        else:
+            log.info("Crowd Backup Finished without errors. Rejoice!")
+        """    
         jiradb_backup = client.containers.run(
              'postgres:9.4',
              detach=True,

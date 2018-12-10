@@ -1,3 +1,3 @@
 # version module
 
-__version__ = "2018.12.04b2"
+__version__ = "2018.12.10b1"
