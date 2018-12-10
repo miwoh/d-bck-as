@@ -98,8 +98,8 @@ def run_backup():
     try:
         client = docker.from_env()
     except docker.errors.APIError as APIERROR:
-        log.error('Unable to get the docker environment. Make sure the daemon is running.')
-        log.error(str(APIERROR))
+        log.critical('Unable to get the docker environment. Make sure the daemon is running.')
+        log.critical(str(APIERROR))
         return 1
     try:
         client.containers.run(
