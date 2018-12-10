@@ -39,7 +39,7 @@ def get_cl_options():
         help='Version of the crowd instance.')
     parser.add_argument(
         '--network-name', action='store', dest='network_name', nargs='?',
-        default='astack_default',
+        default='bridge',
         help='Name of the docker network.')
     parser.add_argument(
         '--db-password', action='store', dest='db_password', required=True, nargs='?',
@@ -208,7 +208,7 @@ def run_backup():
             found_error = False
         else:
             log.info("Crowd Backup Finished without errors. Rejoice!")
-        """    
+
         jiradb_backup = client.containers.run(
              'postgres:9.4',
              detach=True,
@@ -218,53 +218,53 @@ def run_backup():
              network=args.network_name,
              command='''bash -c "pg_dump -h db -U jirauser -Fc -w -f \
                     /root/data/jiradb-{timestamp}.pg_dump.fc jiradb"'''.format(timestamp=timestamp))
-
+        sleep(1)
         for line in jiradb_backup.logs().rsplit('\n'):
             if line != '':
-                log.error(line)
+                log.info(line)
 
         confluencedb_backup = client.containers.run(
              'postgres:9.4',
              detach=True,
              remove=True,
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
-             environment=args.db_password,
+             environment=["PGPASSWORD=" + args.db_password],
              network=args.network_name,
              command='''bash -c "pg_dump -h db -U confluenceuser -Fc -w -f \
                     /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb"'''.format(timestamp=timestamp))
-
+        sleep(1)
         for line in confluencedb_backup.logs().rsplit('\n'):
             if line != '':
-                log.error(line)
+                log.info(line)
 
         bitbucketdb_backup = client.containers.run(
              'postgres:9.4',
              detach=True,
              remove=True,
              volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
-             environment=args.db_password,
+             environment=["PGPASSWORD=" + args.db_password],
              network=args.network_name,
              command='''bash -c "pg_dump -h db -U bitbucketuser -Fc -w -f \
                     /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb"'''.format(timestamp=timestamp))
-
+        sleep(1)
         for line in bitbucketdb_backup.logs().rsplit('\n'):
             if line != '':
-                log.error(line)
+                log.info(line)
 
         crowddb_backup = client.containers.run(
             'postgres:9.4',
             detach=True,
             remove=True,
             volumes={args.backup_dir: {'bind': '/root/data', 'mode': 'rw'}},
-            environment=args.db_password,
+            environment=["PGPASSWORD=" + args.db_password],
             network=args.network_name,
             command='''bash -c "pg_dump -h db -U crowduser -Fc -w -f \
                    /root/data/crowddb-{timestamp}.pg_dump.fc crowddb"'''.format(timestamp=timestamp))
-
+        sleep(1)
         for line in crowddb_backup.logs().rsplit('\n'):
             if line != '':
-                log.error(line)
-        """
+                log.info(line)
+
     except docker.errors.APIError as APIERROR:
         log.error(str(APIERROR))
         return 1
