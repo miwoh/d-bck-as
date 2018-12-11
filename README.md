@@ -31,7 +31,7 @@ The log file called "backup.log" is located under the subdirectory "log" in the 
 
 Additionally, detailed logs describing the ``tar`` processes can be found in the backup directory.
 
-To switch between these modes, use the ``--log-level`` switch as described in *Usage*.
+To switch between log modes, use the ``--log-level`` switch as described in *Usage*.
 
 Below is an example output which describes the parameters of some such log lines:  
 
@@ -50,7 +50,7 @@ The `/your/chosen/path/to` will be omitted when describing usage for the rest of
 
 Use full paths (without trailing slash) only.
 
-The general usage of `svnbackup.py` is described by calling `python stack-backup.py --help`.
+The general usage of `stack-backup.py` is described by calling `python stack-backup.py --help`.
 ```
 usage: stack-backup.py [-h] [--backup-dir [BACKUP_DIR]]
                        [--jira-container [JIRA_CONTAINER]]
@@ -92,7 +92,7 @@ optional arguments:
                         show program's version number and exit
 ```
 
-Default values are assumed for the common use case. These values are:
+Default values are assumed for the common use cases. These values are:
 
 | Option | Value |
 | --- | --- |
@@ -105,5 +105,68 @@ Default values are assumed for the common use case. These values are:
 | --network-name | astack_default |
 | --retention | 3 |
 
+**Note**
+
+This only applies for usage with command line arguments. If a configuration file
+is provided, it is assumed that every value is present in it.
+
 ## Backup
-An example for running the backup without the configuration file could look like this:
+An example for running the backup without the configuration file, and with the standard ASERVO Stack containers 
+could look like this:
+
+python stack-backup.py \
+--backup-dir full/path/to/desired/backupdir \ 
+--crowd-version 9.99.9 \
+--db-password fancypass \
+--retention 10
+
+This would backup all the standard containers, as well as the crowd container contents of
+version 9.99.9, while storing everything in /path/to/backupdir with a retention
+period of 10 days. The --db-password is obviously for loggin in to the 
+databases.
+
+**Note**
+
+The --db-password **or** the --config option must be set in order for the 
+script to work (or, more precisely, to backup the databases). 
+
+## Configuration
+
+An example configuration file is provided below. 
+```
+[global]
+backup_dir=/full/path/to/desired/backupdir
+jira_container=astack_jira_1
+confluence_container=astack_confluence_1
+bitbucket_container=astack_bitbucket_1
+crowd_container=astack_crowd_1
+crowd_version=2.10.1
+network_name=bridge
+db_password=password
+retention=1 
+```
+
+**Note**
+
+As of now, the script only checks for the existence of the file/the ``global``
+section. Make sure all the values shown above are present in the configuration
+file if you use one. 
+
+TODO: Improve script
+
+
+## Exit Codes
+
+| Code | Meaning |
+| --- | --- |
+| 99001 | The directory for the log file could not be created |
+| 99002 | Insufficient permissions to write the log file |
+| 99003 | The backup directory could not be created |
+| 99004 | The config file does'nt exist or is missing the ``global`` section |
+| 99005 | Neither a config file nor a DB password were provided |
+| 99006 | A database backup failed |
+| 99007 | Docker API Error |
+| 99008 | Configfile Error (one or more used values are missing) |
+| 99009 | A database backup failed |
+
+

@@ -62,7 +62,7 @@ def get_cl_arguments():
     arguments = parser.parse_args()
     if arguments.configpath == 'NONE' and arguments.db_password == 'NONE':
         parser.error("Either a config file or a db password must be provided.")
-        sys.exit(1)
+        sys.exit(99005)
     return arguments
 
 
@@ -113,10 +113,10 @@ def get_options():
             conf = {section: dict(parser.items(section)) for section in parser.sections()}
             opts = conf['global']
             return opts
-        except KeyError as KEYERROR:
+        except KeyError:
             log.critical("The configfile is missing the 'global' section, or does'nt exist.")
             log.info("If --config is used, the file is required for the script to run. Exiting...")
-            sys.exit(1)
+            sys.exit(99004)
 
 
 def run_backup():
@@ -133,7 +133,7 @@ def run_backup():
     except docker.errors.APIError as APIERROR:
         log.critical('Unable to get the docker environment. Make sure the daemon is running.')
         log.critical(str(APIERROR))
-        return 1
+        return 99007
     try:
         client.containers.run(
             'centos:latest',
@@ -258,7 +258,7 @@ def run_backup():
         for line in jiradblog.readlines():
             if "failed" in line or "not known" in line:
                 log.error(line.rstrip('\n'))
-                #sys.exit(99001)
+                sys.exit(99006)
         jiradblog.close()
         log.info("JIRA Database Backup Finished without errors. Rejoice!")
 
@@ -278,7 +278,7 @@ def run_backup():
         for line in confluencedblog.readlines():
             if "failed" in line or "not known" in line and line != '':
                 log.error(line.rstrip('\n'))
-                #sys.exit(99001)
+                sys.exit(99006)
         confluencedblog.close()
         log.info("Confluence Database Backup Finished without errors. Rejoice!")
 
@@ -298,7 +298,7 @@ def run_backup():
         for line in bitbucketdblog.readlines():
             if "failed" in line or "not known" in line and line != '':
                 log.error(line.rstrip('\n'))
-                #sys.exit(99001)
+                sys.exit(99006)
         bitbucketdblog.close()
         log.info("Bitbucket Database Backup Finished without errors. Rejoice!")
 
@@ -318,7 +318,7 @@ def run_backup():
         for line in crowddblog.readlines():
             if "failed" in line or "not known" in line and line != '':
                 log.error(line.rstrip('\n'))
-                #sys.exit(99001)
+                sys.exit(99006)
         crowddblog.close()
         log.info("Crowd Database Backup Finished without errors. Rejoice!")
 
@@ -326,10 +326,10 @@ def run_backup():
 
     except docker.errors.APIError as APIERROR:
         log.critical(str(APIERROR))
-        return 1
+        return 99007
     except KeyError as KEYERROR:
         log.critical("%s could not be found in the config file. Exiting..." % str(KEYERROR))
-        return 1
+        return 99008
 
 
 def init_log():
@@ -360,7 +360,7 @@ if __name__ == '__main__':
             os.makedirs(logdir)
         except OSError as ex:
             sys.stderr.write('Error creating log directory: ' + str(ex))
-            sys.exit(1)
+            sys.exit(99001)
 
     logfile = os.path.join(logdir, 'backup.log')
     args = get_cl_arguments()
@@ -375,7 +375,7 @@ if __name__ == '__main__':
                                  else args.log_level.upper()))
     except IOError as ex:
         sys.stderr.write('Insufficient permissions to write log file. Exiting...')
-        sys.exit(1)
+        sys.exit(99002)
 
     log = logging.getLogger('StackBackup')
     options = get_options()
@@ -388,6 +388,6 @@ if __name__ == '__main__':
             os.makedirs(options['backup_dir'])
         except OSError as ex:
             log.critical('Error creating backup directory: ' + str(ex))
-            sys.exit(1)
+            sys.exit(99003)
 
     sys.exit(main())
