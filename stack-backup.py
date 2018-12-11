@@ -88,6 +88,7 @@ def remove_expired_backups():
 
 
 def get_options():
+    log.info('#' * 10 + ' Atlassian Stack Backup Starting! ' + '#' * 10)
     opts = {}
     if args.configpath == 'NONE':
         opts['backup_dir'] = args.backup_dir
@@ -107,10 +108,10 @@ def get_options():
             conf = {section: dict(parser.items(section)) for section in parser.sections()}
             opts = conf['global']
             return opts
-        except OSError as OSERROR:
-            log.error(str(OSERROR))
-        except ConfigParser.Error as CONFIGERROR:
-            log.error(str(CONFIGERROR))
+        except KeyError as KEYERROR:
+            log.critical("The configfile is missing the 'global' section, or does'nt exist.")
+            log.info("If --config is used, the file is required for the script to run. Exiting...")
+            sys.exit(1)
 
 
 def run_backup():
@@ -119,7 +120,6 @@ def run_backup():
     Preconditions:
       - command line arguments are parsed
     """
-    log.info('#' * 10 + ' Atlassian Stack Backup Starting! ' + '#' * 10)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     # helper variable for checking for found errors in the backup output (because one line suffices in backup.log)
     found_error = False
