@@ -43,6 +43,7 @@ def get_cl_arguments():
         help='Name of the docker network.')
     parser.add_argument(
         '--db-password', action='store', dest='db_password', nargs='?',
+        default='NONE',
         help='Password to login to the databases.')
     parser.add_argument(
         '--retention', action='store', dest='retention', nargs='?',
@@ -59,6 +60,9 @@ def get_cl_arguments():
     parser.add_argument(
         '-v', '--version', action='version', version='{version}'.format(version=__version__))
     arguments = parser.parse_args()
+    if arguments.configpath == 'NONE' and arguments.db_password == 'NONE':
+        parser.error("Either a config file or a db password must be provided.")
+        sys.exit(1)
     return arguments
 
 
@@ -332,6 +336,9 @@ def run_backup():
         remove_expired_backups()
     except docker.errors.APIError as APIERROR:
         log.critical(str(APIERROR))
+        return 1
+    except KeyError as KEYERROR:
+        log.critical("%s could not be found in the config file. Exiting..." % str(KEYERROR))
         return 1
 
 
