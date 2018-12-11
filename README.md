@@ -91,4 +91,84 @@ optional arguments:
   --config [CONFIGPATH]
                         Path to the configuration file.
   -v, --version         show program's version number and exit
+(venv) michael@ubuntu:~/PycharmProjects/d-bck-as$ python stack-backup.py --help
+usage: stack-backup.py [-h] [--backup-dir [BACKUP_DIR]]
+                       [--jira-container [JIRA_CONTAINER]]
+                       [--confluence-container [CONFLUENCE_CONTAINER]]
+                       [--bitbucket-container [BITBUCKET_CONTAINER]]
+                       [--crowd-container [CROWD_CONTAINER]]
+                       [--crowd-version [CROWD_VERSION]]
+                       [--network-name [NETWORK_NAME]]
+                       [--db-password [DB_PASSWORD]] [--retention [RETENTION]]
+                       [--log-level [LOG_LEVEL]] [--config [CONFIGPATH]] [-v]
+
+ASERVO Stack Backup
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --backup-dir [BACKUP_DIR]
+                        Path to the backup directory.
+  --jira-container [JIRA_CONTAINER]
+                        Name of the jira container to be backed up.
+  --confluence-container [CONFLUENCE_CONTAINER]
+                        Name of the confluence container to be backed up.
+  --bitbucket-container [BITBUCKET_CONTAINER]
+                        Name of the bitbucket container to be backed up.
+  --crowd-container [CROWD_CONTAINER]
+                        Name of the crowd container to be backed up.
+  --crowd-version [CROWD_VERSION]
+                        Version of the crowd instance.
+  --network-name [NETWORK_NAME]
+                        Name of the docker network.
+  --db-password [DB_PASSWORD]
+                        Password to login to the databases.
+  --retention [RETENTION]
+                        Retention period of existing backups in days. Default
+                        is 3.
+  --log-level [LOG_LEVEL]
+                        From most to least information: DEBUG, INFO, WARNING,
+                        ERROR or CRITICAL.
+  --config [CONFIGPATH]
+                        Path to the configuration file.
+  -v, --version         show program's version number and exit
+(venv) michael@ubuntu:~/PycharmProjects/d-bck-as$ python stack-backup.py -h
+usage: stack-backup.py [-h] [--backup-dir [BACKUP_DIR]]
+                       [--jira-container [JIRA_CONTAINER]]
+                       [--confluence-container [CONFLUENCE_CONTAINER]]
+                       [--bitbucket-container [BITBUCKET_CONTAINER]]
+                       [--crowd-container [CROWD_CONTAINER]]
+                       [--crowd-version [CROWD_VERSION]]
+                       [--network-name [NETWORK_NAME]]
+                       [--db-password [DB_PASSWORD]] [--retention [RETENTION]]
+                       [--log-level [LOG_LEVEL]] [--config [CONFIGPATH]] [-v]
+
+ASERVO Stack Backup
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --backup-dir [BACKUP_DIR]
+                        Path to the backup directory.
+  --jira-container [JIRA_CONTAINER]
+                        Name of the jira container to be backed up.
+  --confluence-container [CONFLUENCE_CONTAINER]
+                        Name of the confluence container to be backed up.
+  --bitbucket-container [BITBUCKET_CONTAINER]
+                        Name of the bitbucket container to be backed up.
+  --crowd-container [CROWD_CONTAINER]
+                        Name of the crowd container to be backed up.
+  --crowd-version [CROWD_VERSION]
+                        Version of the crowd instance.
+  --network-name [NETWORK_NAME]
+                        Name of the docker network.
+  --db-password [DB_PASSWORD]
+                        Password to login to the databases.
+  --retention [RETENTION]
+                        Retention period of existing backups in days. Default
+                        is 3.
+  --log-level [LOG_LEVEL]
+                        From most to least information: DEBUG, INFO, WARNING,
+                        ERROR or CRITICAL.
+  --config [CONFIGPATH]
+                        Path to the configuration file.
+  -v, --version         show program's version number and exit
 ```

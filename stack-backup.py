@@ -12,7 +12,7 @@ from _version import __version__
 
 def get_cl_arguments():
     """ Builds the parser and returns the arguments."""
-    parser = argparse.ArgumentParser(description='Script')
+    parser = argparse.ArgumentParser(description='ASERVO Stack Backup')
     parser.add_argument(
         '--backup-dir', action='store', dest='backup_dir', nargs='?',
         default='$PWD/backup',
