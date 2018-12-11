@@ -91,3 +91,19 @@ optional arguments:
   -v, --version         
                         show program's version number and exit
 ```
+
+Default values are assumed for the common use case. These values are:
+
+| Option | Value |
+| --- | --- |
+| --backup-dir | $PWD/backup |
+| --jira-container | astack_jira_1 |
+| --confluence-container | astack_confluence_1 |
+| --bitbucket-container | astack_bitbucket_1 |
+| --crowd-container | astack_crowd_1 |
+| --crowd-version | 2.10.1 |
+| --network-name | astack_default |
+| --retention | 3 |
+
+## Backup
+An example for running the backup without the configuration file could look like this:
