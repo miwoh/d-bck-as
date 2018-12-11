@@ -77,15 +77,16 @@ def remove_expired_backups():
     oldbackupfound = False
     log.info('Removing files older than %d day/s...' % int(options['retention']))
     for backupfile in os.listdir(options['backup_dir']):
-        for app in stackapps:
-            if app in backupfile:
-                if datetime.datetime.fromtimestamp(
-                        os.path.getmtime(
-                            options['backup_dir'] + os.sep + backupfile)) < \
-                            (datetime.datetime.now() - datetime.timedelta(minutes=int(options['retention']))):
-                    os.remove(options['backup_dir'] + os.sep + backupfile)
-                    log.debug('%s' % options['backup_dir'] + os.sep + backupfile)
-                    oldbackupfound = True
+        if os.path.isfile(options['backup_dir'] + os.sep + backupfile):
+            for app in stackapps:
+                if app in backupfile:
+                    if datetime.datetime.fromtimestamp(
+                            os.path.getmtime(
+                                options['backup_dir'] + os.sep + backupfile)) < \
+                                (datetime.datetime.now() - datetime.timedelta(minutes=int(options['retention']))):
+                        os.remove(options['backup_dir'] + os.sep + backupfile)
+                        log.debug('%s' % options['backup_dir'] + os.sep + backupfile)
+                        oldbackupfound = True
     if not oldbackupfound:
         log.info('None found.')
     log.info('Done removing old files!')
@@ -257,12 +258,9 @@ def run_backup():
         for line in jiradblog.readlines():
             if "failed" in line or "not known" in line:
                 log.error(line.rstrip('\n'))
-                found_error = True
+                #sys.exit(99001)
         jiradblog.close()
-        if found_error:
-            found_error = False
-        else:
-            log.info("JIRA Database Backup Finished without errors. Rejoice!")
+        log.info("JIRA Database Backup Finished without errors. Rejoice!")
 
         client.containers.run(
              'postgres:9.4',
@@ -280,12 +278,9 @@ def run_backup():
         for line in confluencedblog.readlines():
             if "failed" in line or "not known" in line and line != '':
                 log.error(line.rstrip('\n'))
-                found_error = True
+                #sys.exit(99001)
         confluencedblog.close()
-        if found_error:
-            found_error = False
-        else:
-            log.info("Confluence Database Backup Finished without errors. Rejoice!")
+        log.info("Confluence Database Backup Finished without errors. Rejoice!")
 
         client.containers.run(
              'postgres:9.4',
@@ -303,12 +298,9 @@ def run_backup():
         for line in bitbucketdblog.readlines():
             if "failed" in line or "not known" in line and line != '':
                 log.error(line.rstrip('\n'))
-                found_error = True
+                #sys.exit(99001)
         bitbucketdblog.close()
-        if found_error:
-            found_error = False
-        else:
-            log.info("Bitbucket Database Backup Finished without errors. Rejoice!")
+        log.info("Bitbucket Database Backup Finished without errors. Rejoice!")
 
         client.containers.run(
             'postgres:9.4',
@@ -326,14 +318,12 @@ def run_backup():
         for line in crowddblog.readlines():
             if "failed" in line or "not known" in line and line != '':
                 log.error(line.rstrip('\n'))
-                found_error = True
+                #sys.exit(99001)
         crowddblog.close()
-        if found_error:
-            found_error = False
-        else:
-            log.info("Crowd Database Backup Finished without errors. Rejoice!")
+        log.info("Crowd Database Backup Finished without errors. Rejoice!")
 
         remove_expired_backups()
+
     except docker.errors.APIError as APIERROR:
         log.critical(str(APIERROR))
         return 1
