@@ -6,7 +6,10 @@ import logging
 import sys
 import os
 from time import sleep
-import ConfigParser
+try:
+    import ConfigParser
+except ModuleNotFoundError:
+    import configparser
 from _version import __version__
 
 
