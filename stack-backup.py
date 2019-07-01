@@ -140,7 +140,7 @@ def run_backup():
     try:
         client.containers.run(
             'centos:latest',
-            detach=True,
+            detach=False,
             remove=True,
             volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
             volumes_from=options['jira_container'],
@@ -151,7 +151,7 @@ def run_backup():
                     /opt/atlassian/jira/ &>> \
                     /root/connection/jira-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         # This is necessary to let the process finish before checking its output
-        sleep(1)
+        sleep(100)
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiralog.readlines():
@@ -168,7 +168,7 @@ def run_backup():
 
         client.containers.run(
              'centos:latest',
-             detach=True,
+             detach=False,
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=options['confluence_container'],
@@ -195,7 +195,7 @@ def run_backup():
 
         client.containers.run(
              'centos:latest',
-             detach=True,
+             detach=False,
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=options['bitbucket_container'],
@@ -219,7 +219,7 @@ def run_backup():
 
         client.containers.run(
              'centos:latest',
-             detach=True,
+             detach=False,
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=options['crowd_container'],
@@ -247,7 +247,7 @@ def run_backup():
 
         client.containers.run(
              'postgres:9.4',
-             detach=True,
+             detach=False,
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
              environment=["PGPASSWORD=" + options['db_password']],
@@ -267,7 +267,7 @@ def run_backup():
 
         client.containers.run(
              'postgres:9.4',
-             detach=True,
+             detach=False,
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
              environment=["PGPASSWORD=" + options['db_password']],
@@ -287,7 +287,7 @@ def run_backup():
 
         client.containers.run(
              'postgres:9.4',
-             detach=True,
+             detach=False,
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
              environment=["PGPASSWORD=" + options['db_password']],
@@ -307,7 +307,7 @@ def run_backup():
 
         client.containers.run(
             'postgres:9.4',
-            detach=True,
+            detach=False,
             remove=True,
             volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
             environment=["PGPASSWORD=" + options['db_password']],
