@@ -128,7 +128,7 @@ def run_backup():
     Preconditions:
       - command line arguments are parsed
     """
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
     # helper variable for checking for found errors in the backup output (because one line suffices in backup.log)
     found_error = False
     try:
