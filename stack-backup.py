@@ -5,7 +5,6 @@ import argparse
 import logging
 import sys
 import os
-# from time import sleep
 try:
     import ConfigParser
 except ModuleNotFoundError:
@@ -159,6 +158,7 @@ def run_backup():
             if "Cannot " in line or "Exiting" in line:
                 found_error = True
         jiralog.close()
+        os.rename(str(jiralog), logdir + os.sep + 'jira-bck-{timestamp}.log'.format(timestamp=timestamp))
         if found_error:
             log.error("Unable to finish JIRA backup!")
             log.error("Details in %s" % options['backup_dir'] + '/jira-bck-{timestamp}.log'.format(
