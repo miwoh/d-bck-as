@@ -86,7 +86,7 @@ def remove_expired_backups():
                     if datetime.datetime.fromtimestamp(
                             os.path.getmtime(
                                 options['backup_dir'] + os.sep + backupfile)) < \
-                                (datetime.datetime.now() - datetime.timedelta(minutes=int(options['retention']))):
+                                (datetime.datetime.now() - datetime.timedelta(days=int(options['retention']))):
                         os.remove(options['backup_dir'] + os.sep + backupfile)
                         log.debug('%s' % options['backup_dir'] + os.sep + backupfile)
                         oldbackupfound = True
