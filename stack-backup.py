@@ -9,7 +9,7 @@ from time import sleep
 try:
     import ConfigParser
 except ModuleNotFoundError:
-    import configparser
+    import configparser as ConfigParser
 from _version import __version__
 
 
@@ -155,7 +155,6 @@ def run_backup():
         sleep(1)
         backup_process = client.containers.get('backup_container_jira')
         backup_process.wait()
-
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiralog.readlines():
@@ -206,10 +205,13 @@ def run_backup():
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=options['bitbucket_container'],
+             name='backup_container_bitbucket',
              command='''bash -c "tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/bitbucket/ &> \
                     /root/connection/bitbucket-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         sleep(1)
+        backup_process = client.containers.get('backup_container_bitbucket')
+        backup_process.wait()
         bitbucketlog = open(options['backup_dir'] + os.sep + 'bitbucket-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in bitbucketlog.readlines():
@@ -230,6 +232,7 @@ def run_backup():
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=options['crowd_container'],
+             name='backup_container_crowd',
              command='''bash -c "tar -cvf /root/connection/crowd-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/crowd/  &> \
                     /root/connection/crowd-bck-{timestamp}.log && \
@@ -238,6 +241,8 @@ def run_backup():
                     /root/connection/crowd-bck-{timestamp}.log"'''.format(
                                                             timestamp=timestamp, version=str(options['crowd_version'])))
         sleep(1)
+        backup_process = client.containers.get('backup_container_crowd')
+        backup_process.wait()
         crowdlog = open(options['backup_dir'] + os.sep + 'crowd-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in crowdlog.readlines():
@@ -259,10 +264,13 @@ def run_backup():
              volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
              environment=["PGPASSWORD=" + options['db_password']],
              network=options['network_name'],
+             name='backup_container_jiradb',
              command='''bash -c "pg_dump -h db -U jirauser -Fc -w -f \
                     /root/data/jiradb-{timestamp}.pg_dump.fc jiradb &> \
                     /root/data/jira-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         sleep(1)
+        backup_process = client.containers.get('backup_container_jiradb')
+        backup_process.wait()
         jiradblog = open(options['backup_dir'] + os.sep + 'jira-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiradblog.readlines():
@@ -279,10 +287,13 @@ def run_backup():
              volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
              environment=["PGPASSWORD=" + options['db_password']],
              network=options['network_name'],
+             name='backup_container_confluencedb',
              command='''bash -c "pg_dump -h db -U confluenceuser -Fc -w -f \
                     /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb &> \
                     /root/data/confluence-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         sleep(1)
+        backup_process = client.containers.get('backup_container_confluencedb')
+        backup_process.wait()
         confluencedblog = open(options['backup_dir'] + os.sep + 'confluence-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in confluencedblog.readlines():
@@ -299,10 +310,13 @@ def run_backup():
              volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
              environment=["PGPASSWORD=" + options['db_password']],
              network=options['network_name'],
+             name='backup_container_bitbucketdb',
              command='''bash -c "pg_dump -h db -U bitbucketuser -Fc -w -f \
                     /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb &> \
                     /root/data/bitbucket-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         sleep(1)
+        backup_process = client.containers.get('backup_container_bitbucketdb')
+        backup_process.wait()
         bitbucketdblog = open(options['backup_dir'] + os.sep + 'bitbucket-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in bitbucketdblog.readlines():
@@ -319,10 +333,13 @@ def run_backup():
             volumes={options['backup_dir']: {'bind': '/root/data', 'mode': 'rw'}},
             environment=["PGPASSWORD=" + options['db_password']],
             network=options['network_name'],
+            name='backup_container_crowddb',
             command='''bash -c "pg_dump -h db -U crowduser -Fc -w -f \
                    /root/data/crowddb-{timestamp}.pg_dump.fc crowddb &> \
                    /root/data/crowd-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         sleep(1)
+        backup_process = client.containers.get('backup_container_crowddb')
+        backup_process.wait()
         crowddblog = open(options['backup_dir'] + os.sep + 'crowd-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in crowddblog.readlines():
