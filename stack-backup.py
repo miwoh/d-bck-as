@@ -144,17 +144,18 @@ def run_backup():
             remove=True,
             volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
             volumes_from=options['jira_container'],
-            name='backup_container',
+            name='backup_container_jira',
             command='''bash -c "tar -cvf /root/connection/jira-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/jira/ &> \
                     /root/connection/jira-bck-{timestamp}.log && \
                     tar -cvf /root/connection/jira-install-{timestamp}.backup.tar \
                     /opt/atlassian/jira/ &>> \
                     /root/connection/jira-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        backup_process = client.containers.get('backup_container')
-        backup_process.wait()
         # This is necessary to let the process finish before checking its output
         sleep(1)
+        backup_process = client.containers.get('backup_container_jira')
+        backup_process.wait()
+
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiralog.readlines():
@@ -175,6 +176,7 @@ def run_backup():
              remove=True,
              volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
              volumes_from=options['confluence_container'],
+             name='backup_container_confluence',
              command='''bash -c "tar -cvf /root/connection/confluence-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/confluence/ &> \
                     /root/connection/confluence-bck-{timestamp}.log && \
@@ -182,6 +184,8 @@ def run_backup():
                     /opt/atlassian/confluence/ &>> \
                     /root/connection/confluence-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         sleep(1)
+        backup_process = client.containers.get('backup_container_confluence')
+        backup_process.wait()
         confluencelog = open(options['backup_dir'] + os.sep + 'confluence-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in confluencelog.readlines():
