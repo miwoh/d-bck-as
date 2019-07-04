@@ -151,7 +151,7 @@ def run_backup():
                     /opt/atlassian/jira/ &>> \
                     /root/connection/jira-bck-{timestamp}.log"'''.format(timestamp=timestamp))
         # This is necessary to let the process finish before checking its output
-        sleep(100)
+        sleep(1)
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiralog.readlines():
