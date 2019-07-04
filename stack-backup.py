@@ -156,7 +156,7 @@ def run_backup():
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiralog.readlines():
-            if "Cannot" in line or "Exiting" in line:
+            if "Cannot " in line or "Exiting" in line:
                 found_error = True
         jiralog.close()
         if found_error:
@@ -185,7 +185,7 @@ def run_backup():
         confluencelog = open(options['backup_dir'] + os.sep + 'confluence-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in confluencelog.readlines():
-            if "Cannot" in line or "Exiting" in line:
+            if "Cannot " in line or "Exiting" in line:
                 found_error = True
         confluencelog.close()
         if found_error:
@@ -211,7 +211,7 @@ def run_backup():
         bitbucketlog = open(options['backup_dir'] + os.sep + 'bitbucket-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in bitbucketlog.readlines():
-            if "Cannot" in line or "Exiting" in line:
+            if "Cannot " in line or "Exiting" in line:
                 found_error = True
         bitbucketlog.close()
         if found_error:
@@ -241,7 +241,7 @@ def run_backup():
         crowdlog = open(options['backup_dir'] + os.sep + 'crowd-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in crowdlog.readlines():
-            if "Cannot" in line or "Exiting" in line:
+            if "Cannot " in line or "Exiting" in line:
                 found_error = True
         crowdlog.close()
         if found_error:
