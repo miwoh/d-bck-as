@@ -158,7 +158,7 @@ def run_backup():
             if "Cannot " in line or "Exiting" in line:
                 found_error = True
         jiralog.close()
-        print(str(jiralog))
+        print(jiralog.name)
         print(logdir + os.sep + 'jira-bck-{timestamp}.log'.format(timestamp=timestamp))
         os.rename(str(jiralog), logdir + os.sep + 'jira-bck-{timestamp}.log'.format(timestamp=timestamp))
         if found_error:
