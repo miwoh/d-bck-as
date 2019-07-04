@@ -5,7 +5,7 @@ import argparse
 import logging
 import sys
 import os
-from time import sleep
+# from time import sleep
 try:
     import ConfigParser
 except ModuleNotFoundError:
@@ -151,8 +151,6 @@ def run_backup():
                     tar -cvf /root/connection/jira-install-{timestamp}.backup.tar \
                     /opt/atlassian/jira/ &>> \
                     /root/connection/jira-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        # This is necessary to let the process finish before checking its output
-        sleep(1)
         backup_process = client.containers.get('backup_container_jira')
         backup_process.wait()
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
@@ -182,7 +180,6 @@ def run_backup():
                     tar -cvf /root/connection/confluence-install-{timestamp}.backup.tar \
                     /opt/atlassian/confluence/ &>> \
                     /root/connection/confluence-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        sleep(1)
         backup_process = client.containers.get('backup_container_confluence')
         backup_process.wait()
         confluencelog = open(options['backup_dir'] + os.sep + 'confluence-bck-{timestamp}.log'.format(
@@ -209,7 +206,6 @@ def run_backup():
              command='''bash -c "tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/bitbucket/ &> \
                     /root/connection/bitbucket-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        sleep(1)
         backup_process = client.containers.get('backup_container_bitbucket')
         backup_process.wait()
         bitbucketlog = open(options['backup_dir'] + os.sep + 'bitbucket-bck-{timestamp}.log'.format(
@@ -240,7 +236,6 @@ def run_backup():
                     /opt/atlassian/atlassian-crowd-{version}/ &>> \
                     /root/connection/crowd-bck-{timestamp}.log"'''.format(
                                                             timestamp=timestamp, version=str(options['crowd_version'])))
-        sleep(1)
         backup_process = client.containers.get('backup_container_crowd')
         backup_process.wait()
         crowdlog = open(options['backup_dir'] + os.sep + 'crowd-bck-{timestamp}.log'.format(
@@ -268,7 +263,6 @@ def run_backup():
              command='''bash -c "pg_dump -h db -U jirauser -Fc -w -f \
                     /root/data/jiradb-{timestamp}.pg_dump.fc jiradb &> \
                     /root/data/jira-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        sleep(1)
         backup_process = client.containers.get('backup_container_jiradb')
         backup_process.wait()
         jiradblog = open(options['backup_dir'] + os.sep + 'jira-db-bck-{timestamp}.log'.format(
@@ -291,7 +285,6 @@ def run_backup():
              command='''bash -c "pg_dump -h db -U confluenceuser -Fc -w -f \
                     /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb &> \
                     /root/data/confluence-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        sleep(1)
         backup_process = client.containers.get('backup_container_confluencedb')
         backup_process.wait()
         confluencedblog = open(options['backup_dir'] + os.sep + 'confluence-db-bck-{timestamp}.log'.format(
@@ -314,7 +307,6 @@ def run_backup():
              command='''bash -c "pg_dump -h db -U bitbucketuser -Fc -w -f \
                     /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb &> \
                     /root/data/bitbucket-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        sleep(1)
         backup_process = client.containers.get('backup_container_bitbucketdb')
         backup_process.wait()
         bitbucketdblog = open(options['backup_dir'] + os.sep + 'bitbucket-db-bck-{timestamp}.log'.format(
@@ -337,7 +329,6 @@ def run_backup():
             command='''bash -c "pg_dump -h db -U crowduser -Fc -w -f \
                    /root/data/crowddb-{timestamp}.pg_dump.fc crowddb &> \
                    /root/data/crowd-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
-        sleep(1)
         backup_process = client.containers.get('backup_container_crowddb')
         backup_process.wait()
         crowddblog = open(options['backup_dir'] + os.sep + 'crowd-db-bck-{timestamp}.log'.format(
