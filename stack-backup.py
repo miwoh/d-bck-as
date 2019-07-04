@@ -272,6 +272,8 @@ def run_backup():
                 log.error(line.rstrip('\n'))
                 sys.exit(99006)
         jiradblog.close()
+        print(str(jiradblog))
+        print(logdir + os.sep + 'jira-db-bck-{timestamp}.log'.format(timestamp=timestamp))
         os.rename(str(jiradblog), logdir + os.sep + 'jira-db-bck-{timestamp}.log'.format(timestamp=timestamp))
         log.info("JIRA Database Backup Finished without errors. Rejoice!")
 
