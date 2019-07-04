@@ -150,15 +150,19 @@ def run_backup():
                     tar -cvf /root/connection/jira-install-{timestamp}.backup.tar \
                     /opt/atlassian/jira/ &>> \
                     /root/connection/jira-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+
         backup_process = client.containers.get('backup_container_jira')
         backup_process.wait()
+
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiralog.readlines():
             if "Cannot " in line or "Exiting" in line:
                 found_error = True
         jiralog.close()
+
         os.rename(jiralog.name, logdir + os.sep + 'jira-bck-{timestamp}.log'.format(timestamp=timestamp))
+
         if found_error:
             log.error("Unable to finish JIRA backup!")
             log.error("Details in %s" % options['backup_dir'] + '/jira-bck-{timestamp}.log'.format(
@@ -180,14 +184,19 @@ def run_backup():
                     tar -cvf /root/connection/confluence-install-{timestamp}.backup.tar \
                     /opt/atlassian/confluence/ &>> \
                     /root/connection/confluence-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+
         backup_process = client.containers.get('backup_container_confluence')
         backup_process.wait()
+
         confluencelog = open(options['backup_dir'] + os.sep + 'confluence-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in confluencelog.readlines():
             if "Cannot " in line or "Exiting" in line:
                 found_error = True
         confluencelog.close()
+
+        os.rename(confluencelog.name, logdir + os.sep + 'confluence-bck-{timestamp}.log'.format(timestamp=timestamp))
+
         if found_error:
             log.error("Unable to finish Confluence backup!")
             log.error("Details in %s" % options['backup_dir'] + '/confluence-bck-{timestamp}.log'.format(
@@ -206,14 +215,19 @@ def run_backup():
              command='''bash -c "tar -cvf /root/connection/bitbucket-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/bitbucket/ &> \
                     /root/connection/bitbucket-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+
         backup_process = client.containers.get('backup_container_bitbucket')
         backup_process.wait()
+
         bitbucketlog = open(options['backup_dir'] + os.sep + 'bitbucket-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in bitbucketlog.readlines():
             if "Cannot " in line or "Exiting" in line:
                 found_error = True
         bitbucketlog.close()
+
+        os.rename(bitbucketlog.name, logdir + os.sep + 'bitbucket-bck-{timestamp}.log'.format(timestamp=timestamp))
+
         if found_error:
             log.error("Unable to finish Bitbucket backup!")
             log.error("Details in %s" % options['backup_dir'] + '/bitbucket-bck-{timestamp}.log'.format(
@@ -236,14 +250,19 @@ def run_backup():
                     /opt/atlassian/atlassian-crowd-{version}/ &>> \
                     /root/connection/crowd-bck-{timestamp}.log"'''.format(
                                                             timestamp=timestamp, version=str(options['crowd_version'])))
+
         backup_process = client.containers.get('backup_container_crowd')
         backup_process.wait()
+
         crowdlog = open(options['backup_dir'] + os.sep + 'crowd-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in crowdlog.readlines():
             if "Cannot " in line or "Exiting" in line:
                 found_error = True
         crowdlog.close()
+
+        os.rename(crowdlog.name, logdir + os.sep + 'crowd-bck-{timestamp}.log'.format(timestamp=timestamp))
+
         if found_error:
             log.error("Unable to finish Crowd backup!")
             log.error("Details in %s" % options['backup_dir'] + '/crowd-bck-{timestamp}.log'.format(
@@ -263,8 +282,10 @@ def run_backup():
              command='''bash -c "pg_dump -h db -U jirauser -Fc -w -f \
                     /root/data/jiradb-{timestamp}.pg_dump.fc jiradb &> \
                     /root/data/jira-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+
         backup_process = client.containers.get('backup_container_jiradb')
         backup_process.wait()
+
         jiradblog = open(options['backup_dir'] + os.sep + 'jira-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in jiradblog.readlines():
@@ -273,7 +294,7 @@ def run_backup():
                 sys.exit(99006)
         jiradblog.close()
 
-        os.rename(jiralog.name, logdir + os.sep + 'jira-db-bck-{timestamp}.log'.format(timestamp=timestamp))
+        os.rename(jiradblog.name, logdir + os.sep + 'jira-db-bck-{timestamp}.log'.format(timestamp=timestamp))
         log.info("JIRA Database Backup Finished without errors. Rejoice!")
 
         client.containers.run(
@@ -287,8 +308,10 @@ def run_backup():
              command='''bash -c "pg_dump -h db -U confluenceuser -Fc -w -f \
                     /root/data/confluencedb-{timestamp}.pg_dump.fc confluencedb &> \
                     /root/data/confluence-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+
         backup_process = client.containers.get('backup_container_confluencedb')
         backup_process.wait()
+
         confluencedblog = open(options['backup_dir'] + os.sep + 'confluence-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in confluencedblog.readlines():
@@ -296,6 +319,9 @@ def run_backup():
                 log.error(line.rstrip('\n'))
                 sys.exit(99006)
         confluencedblog.close()
+
+        os.rename(confluencedblog.name, logdir + os.sep + 'confluence-db-bck-{timestamp}.log'.format(
+            timestamp=timestamp))
         log.info("Confluence Database Backup Finished without errors. Rejoice!")
 
         client.containers.run(
@@ -309,8 +335,10 @@ def run_backup():
              command='''bash -c "pg_dump -h db -U bitbucketuser -Fc -w -f \
                     /root/data/bitbucketdb-{timestamp}.pg_dump.fc bitbucketdb &> \
                     /root/data/bitbucket-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+
         backup_process = client.containers.get('backup_container_bitbucketdb')
         backup_process.wait()
+
         bitbucketdblog = open(options['backup_dir'] + os.sep + 'bitbucket-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in bitbucketdblog.readlines():
@@ -318,6 +346,8 @@ def run_backup():
                 log.error(line.rstrip('\n'))
                 sys.exit(99006)
         bitbucketdblog.close()
+
+        os.rename(bitbucketdblog.name, logdir + os.sep + 'bitbucket-db-bck-{timestamp}.log'.format(timestamp=timestamp))
         log.info("Bitbucket Database Backup Finished without errors. Rejoice!")
 
         client.containers.run(
@@ -331,8 +361,10 @@ def run_backup():
             command='''bash -c "pg_dump -h db -U crowduser -Fc -w -f \
                    /root/data/crowddb-{timestamp}.pg_dump.fc crowddb &> \
                    /root/data/crowd-db-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+
         backup_process = client.containers.get('backup_container_crowddb')
         backup_process.wait()
+
         crowddblog = open(options['backup_dir'] + os.sep + 'crowd-db-bck-{timestamp}.log'.format(
             timestamp=timestamp), 'r')
         for line in crowddblog.readlines():
@@ -340,8 +372,9 @@ def run_backup():
                 log.error(line.rstrip('\n'))
                 sys.exit(99006)
         crowddblog.close()
-        log.info("Crowd Database Backup Finished without errors. Rejoice!")
 
+        os.rename(crowddblog.name, logdir + os.sep + 'crowd-db-bck-{timestamp}.log'.format(timestamp=timestamp))
+        log.info("Crowd Database Backup Finished without errors. Rejoice!")
         remove_expired_backups()
 
     except docker.errors.APIError as APIERROR:
