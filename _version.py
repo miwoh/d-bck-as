@@ -1,3 +1,3 @@
 # version module
 
-__version__ = "2019.07.01"
+__version__ = "2019.07.04"
