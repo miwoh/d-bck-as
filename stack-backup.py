@@ -144,12 +144,15 @@ def run_backup():
             remove=True,
             volumes={options['backup_dir']: {'bind': '/root/connection', 'mode': 'rw'}},
             volumes_from=options['jira_container'],
+            name='backup_container',
             command='''bash -c "tar -cvf /root/connection/jira-home-{timestamp}.backup.tar \
                     /var/atlassian/application-data/jira/ &> \
                     /root/connection/jira-bck-{timestamp}.log && \
                     tar -cvf /root/connection/jira-install-{timestamp}.backup.tar \
                     /opt/atlassian/jira/ &>> \
                     /root/connection/jira-bck-{timestamp}.log"'''.format(timestamp=timestamp))
+        backup_process = client.containers.get('backup_container')
+        backup_process.wait()
         # This is necessary to let the process finish before checking its output
         sleep(1)
         jiralog = open(options['backup_dir'] + os.sep + 'jira-bck-{timestamp}.log'.format(
