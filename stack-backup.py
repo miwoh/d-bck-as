@@ -158,6 +158,8 @@ def run_backup():
             if "Cannot " in line or "Exiting" in line:
                 found_error = True
         jiralog.close()
+        print(str(jiralog))
+        print(logdir + os.sep + 'jira-bck-{timestamp}.log'.format(timestamp=timestamp))
         os.rename(str(jiralog), logdir + os.sep + 'jira-bck-{timestamp}.log'.format(timestamp=timestamp))
         if found_error:
             log.error("Unable to finish JIRA backup!")
@@ -272,8 +274,7 @@ def run_backup():
                 log.error(line.rstrip('\n'))
                 sys.exit(99006)
         jiradblog.close()
-        print(str(jiradblog))
-        print(logdir + os.sep + 'jira-db-bck-{timestamp}.log'.format(timestamp=timestamp))
+
         os.rename(str(jiradblog), logdir + os.sep + 'jira-db-bck-{timestamp}.log'.format(timestamp=timestamp))
         log.info("JIRA Database Backup Finished without errors. Rejoice!")
 
