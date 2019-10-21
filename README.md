@@ -170,5 +170,5 @@ TODO: Improve script
 | 99009 | A database backup failed |
 
 ## TODOS
-Make sure the backups (AND LOGS) can be stored on mounted filesystems 
+Make sure the backups (AND LOGS) can be stored on mounted filesystems (shutil.move) - if thats not possible give a message telling the user that cross-filesystem copy is inavailable w this script 
 
