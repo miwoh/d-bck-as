@@ -169,4 +169,6 @@ TODO: Improve script
 | 99008 | Configfile Error (one or more used values are missing) |
 | 99009 | A database backup failed |
 
+## TODOS
+Make sure the backups (AND LOGS) can be stored on mounted filesystems 
 
